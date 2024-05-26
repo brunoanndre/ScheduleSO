@@ -61,23 +61,24 @@ void scheduleEDF() {
                 char *name = temp->task->name;
                 struct node *next = temp->next;
                 delete(&head, temp->task); // remove task from the list
-                printf("It took %.9f seconds to complete the task %s. \n", elapsedTime(startTime), name);
+                printf("It took %.9f seconds to complete the task %s. \n\n", elapsedTime(startTime), name);
+
                 if (next != NULL) {
                     temp = next;
                 } else {
                     temp = head;
                     printf("----------------------------------------\n");
                     printf("It took %.9f seconds to complete the round.\n", elapsedTime(startTasks));
-                    printf("----------------------------------------\n");
+                    printf("----------------------------------------\n\n");
                 }
             } else {
                 int limitToExecute = temp->task->deadline - temp->task->burst;
                 if(limitToExecute < unitTimeCounter){
-                    printf("The task %s could not be performed, therefore it has been discarted.\n", temp->task->name);
+                    printf("The task %s could not be performed, therefore it has been discarted.\n\n", temp->task->name);
                     delete(&head, temp->task); 
                     temp = temp->next;
                 }else{
-                    run(temp->task, QUANTUM);
+                    runEDF(temp->task, QUANTUM);
                     unitTimeCounter += QUANTUM;
                     temp->task->burst -= QUANTUM;
                     if (temp->next != NULL && temp->next->task->deadline == currentDeadline) {
@@ -86,15 +87,19 @@ void scheduleEDF() {
                         temp = head;
                         printf("----------------------------------------\n");
                         printf("It took %.9f seconds to complete the round.\n", elapsedTime(startTasks));
-                        printf("----------------------------------------\n");
+                        printf("----------------------------------------\n\n");
                         QueryPerformanceCounter(&startTasks);
                     }
                 }
             }
+            printf("----------------------------------------\n");
+            printf("%d unit of times elapsed\n",unitTimeCounter);
+            printf("----------------------------------------\n\n");
         }
         if (temp != NULL) {
             currentDeadline = temp->task->deadline;
         }
+        
     }
     printf("----------------------------------------\n");
     printf("It took %.9f seconds to complete all tasks.\n", elapsedTime(startTime));

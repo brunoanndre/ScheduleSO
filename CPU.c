@@ -8,5 +8,5 @@ void run(Task *task, int slice) {
 }
 
 void runEDF(Task *task,int slice){
-    printf("Running task = [%s] [%d] [%d] [%d] for %d units.\n",task->name, task->priority, task->burst,task->deadline, slice);
+    printf("Running task = [%s] [%d] [%d] [%d] for %d units.\n\n",task->name, task->priority, task->burst,task->deadline, slice);
 }
