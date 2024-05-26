@@ -93,7 +93,7 @@ void scheduleEDF() {
                 }
             }
             printf("----------------------------------------\n");
-            printf("%d unit of times elapsed\n",unitTimeCounter);
+            printf("%d units of elapsed time\n",unitTimeCounter);
             printf("----------------------------------------\n\n");
         }
         if (temp != NULL) {
