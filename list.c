@@ -52,7 +52,7 @@ void traverse(struct node *head) {
 
 void sortByPriority(struct node *head)
 {
-    if(head == NULL){
+    if(head == NULL || head->next == NULL){
         return;
     }
     struct node *sorted = NULL;
@@ -79,3 +79,4 @@ void sortByPriority(struct node *head)
     }
     head = sorted;
 }
+

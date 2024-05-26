@@ -46,14 +46,14 @@ void schedule(){
             char *name = temp->task->name;
             struct node *next = temp->next;
             delete(&head,temp->task); //Remove task da lista
-            printf("It tooks %.9f seconds to complete the task %s. \n",elapsedTime(startTime),name);
+            printf("It took %.9f seconds to complete the task %s. \n",elapsedTime(startTime),name);
             //printf("----------------------------------------\n");
             if(next != NULL){
                temp = next;
             }else{
                temp = head;
                printf("----------------------------------------\n");
-               printf("It tooks %.9f seconds to complete the round.\n",elapsedTime(startTasks));
+               printf("It took %.9f seconds to complete the round.\n",elapsedTime(startTasks));
                printf("----------------------------------------\n");
             }
          }else{
@@ -66,7 +66,7 @@ void schedule(){
             }else{
                temp = head;
                printf("----------------------------------------\n");
-               printf("It tooks %.9f seconds to complete the round.\n",elapsedTime(startTasks));
+               printf("It took %.9f seconds to complete the round.\n",elapsedTime(startTasks));
                printf("----------------------------------------\n");
                QueryPerformanceCounter(&startTasks);
             }
@@ -77,7 +77,7 @@ void schedule(){
       }
    }
    printf("----------------------------------------\n");
-   printf("It tooks %.9f seconds to complete all tasks.\n",elapsedTime(startTime));
+   printf("It took %.9f seconds to complete all tasks.\n",elapsedTime(startTime));
    printf("----------------------------------------\n");
    
 }
