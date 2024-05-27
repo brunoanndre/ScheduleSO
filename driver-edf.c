@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     int deadline;
 
     //in = fopen(argv[1],"r");
-    
+
     in = fopen("edf-schedule_pri.txt", "r");
     if(in == NULL){
         printf("erro ao abrir o arquivocr\n");
