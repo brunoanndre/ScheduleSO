@@ -50,8 +50,6 @@ void scheduleEDF() {
     QueryPerformanceFrequency(&frequency);
     LARGE_INTEGER startTime;
     QueryPerformanceCounter(&startTime);
-    LARGE_INTEGER startTasks;
-    QueryPerformanceCounter(&startTasks);
 
     while (temp != NULL) {
         printf("-----------------------------------------\n");
@@ -73,19 +71,12 @@ void scheduleEDF() {
                         struct node *next = temp->next;
                         delete(&head, temp->task); // remove task from the list
                         printf("It took %.9f seconds to complete the task %s. \n\n", elapsedTime(startTime), name);
-
-                        if (next != NULL) {
-                            temp = next;
-                        } else {
-                            temp = head;
-                        }
                     }
 
                     if (temp->next != NULL && temp->next->task->deadline == currentDeadline) {
                         temp = temp->next;
                     } else {
                         temp = head;
-                        QueryPerformanceCounter(&startTasks);
                     }
                 }
             }
@@ -98,9 +89,6 @@ void scheduleEDF() {
         }
         
     }
-    printf("----------------------------------------\n");
-    printf("%d units of elapsed time\n",unitTimeCounter);
-    printf("----------------------------------------\n\n");
     printf("----------------------------------------\n");
     printf("It took %.9f seconds to complete all tasks.\n", elapsedTime(startTime));
     printf("----------------------------------------\n");

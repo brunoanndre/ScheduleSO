@@ -50,33 +50,3 @@ void traverse(struct node *head) {
 }
 
 
-void sortByPriority(struct node *head)
-{
-    if(head == NULL || head->next == NULL){
-        return;
-    }
-    struct node *sorted = NULL;
-    struct node *current = head;
-    
-    while(current != NULL){
-//        printf("Current task: %s - Next task: %s\n\n",current->task->name,current->next->task->name);
-        struct node *next = current->next;    
-//        printf("sorted: %s",sorted->task->name);
-        if(sorted == NULL || sorted->task->priority > current->task->priority){
-            current->next = sorted;
-            sorted = current;
-  //          printf("Primeiro if current next: %s - sorted: %s \n\n",current->next->task->name,sorted->task->name);
-        }else{
-            struct node *temp = sorted;
-            while(temp->next != NULL && temp->next->task->priority <= current->task->priority){
-                temp = temp->next;
-            }
-            current->next = temp->next;
-            temp->next = current;
-    //        printf("else current next: %s - temp next %s",current->next->task->name,temp->next->task->name);
-        }
-        current = next;
-    }
-    head = sorted;
-}
-

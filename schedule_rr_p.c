@@ -6,102 +6,92 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define NUM_PRIORITIES 5
-
 struct node *head = NULL;
-
-typedef struct Queue {
-    struct node *head;
-} Queue;
-
-Queue priorityQueues[NUM_PRIORITIES];
 LARGE_INTEGER frequency;
-HANDLE timeThread;
 
-int globalTime = 0;
-int realtimeSleep = 0;
 
-DWORD WINAPI timeCounter(LPVOID lpParam) {
-    while (1) {
-        Sleep(1000); // 1sec
-        globalTime++;
-        if (realtimeSleep > 0) {
-            realtimeSleep--;
-        }
-    }
-    return 0;
+// add a task to the list 
+void add(char *name, int priority, int burst){
+   Task *task = malloc(sizeof(Task));
+   task->name = name;
+   task->priority = priority;
+   task->burst = burst;
+   insert(&head,task);
 }
 
-void addToPriorityQueue(char *name, int priority, int burst) {
-    Task *task = malloc(sizeof(Task));
-    task->name = name;
-    task->priority = priority;
-    task->burst = burst;
-    insert(&(priorityQueues[priority].head), task);
+double elapsedTime(LARGE_INTEGER startTime){
+   LARGE_INTEGER endTime;
+   QueryPerformanceCounter(&endTime);
+   double totalTime = (double)(endTime.QuadPart - startTime.QuadPart) / (double)frequency.QuadPart;
+
+   return totalTime;
 }
 
-void executePriorityQueue(Queue *queue, double *totalTime) {
-    struct node *temp = queue->head;
-    while (temp != NULL) {
-        printf("-----------------------------------------\n");
-        if (temp->task->burst == 0) {
-            char *name = temp->task->name;
-            struct node *next = temp->next;
-            delete(&(queue->head), temp->task);
-            printf("It took %.9f seconds to complete the task %s. \n", *totalTime, name);
-            if (next != NULL) {
-                temp = next;
-            } else {
-                break;
-            }
-        } else {
-            if (temp->task->priority == 1 && realtimeSleep > 0) {
-                printf("Task %s in real-time sleep. Skipping...\n", temp->task->name);
-                temp = temp->next;
-                continue;
-            }
-            run(temp->task, QUANTUM);
-            temp->task->burst -= QUANTUM;
-            temp = temp->next;
-            *totalTime += QUANTUM;
-        }
-    }
-}
-
-void schedule() {
-    struct node *temp = head;
-    QueryPerformanceFrequency(&frequency);
-    LARGE_INTEGER startTime;
-    QueryPerformanceCounter(&startTime);
-    double totalTime = 0;
-
-    for (int i = 1; i <= NUM_PRIORITIES; ++i) {
-        priorityQueues[i - 1].head = NULL;
-    }
-
-    while (temp != NULL) {
-        addToPriorityQueue(temp->task->name, temp->task->priority, temp->task->burst);
-        temp = temp->next;
-    }
-
-    timeThread = CreateThread(NULL, 0, timeCounter, NULL, 0, NULL);
-    if (timeThread == NULL) {
-        printf("Error creating time thread.\n");
+void sortByPriority(struct node *head)
+{
+    if(head == NULL || head->next == NULL){
         return;
     }
-
-    for (int i = 1; i <= NUM_PRIORITIES; ++i) {
-        if (priorityQueues[i - 1].head != NULL) {
-            printf("Executing priority queue %d\n", i);
-            executePriorityQueue(&priorityQueues[i - 1], &totalTime);
+    struct node *sorted = NULL;
+    struct node *current = head;
+    
+    while(current != NULL){
+        struct node *next = current->next;    
+        if(sorted == NULL || sorted->task->priority > current->task->priority){
+            current->next = sorted;
+            sorted = current;
+        }else{
+            struct node *temp = sorted;
+            while(temp->next != NULL && temp->next->task->priority <= current->task->priority){
+                temp = temp->next;
+            }
+            current->next = temp->next;
+            temp->next = current;
         }
+        current = next;
     }
-
-    WaitForSingleObject(timeThread, INFINITE);
-
-    CloseHandle(timeThread);
-
-    printf("----------------------------------------\n");
-    printf("It took %.9f seconds to complete all tasks.\n", totalTime);
-    printf("----------------------------------------\n");
+    head = sorted;
 }
+
+// invoke the scheduler
+void schedule(){
+   sortByPriority(head);
+   struct node *temp = head;
+   QueryPerformanceFrequency(&frequency);
+   LARGE_INTEGER startTime;
+   QueryPerformanceCounter(&startTime);
+   LARGE_INTEGER startTasks;
+   QueryPerformanceCounter(&startTasks);
+
+   while(temp != NULL){
+      printf("-----------------------------------------\n");
+      int currentPriority = temp->task->priority;
+      while(temp != NULL && temp->task->priority == currentPriority){
+         if(temp->task->burst > 0){ //Se a task estiver concluída é removida da lista e exibe tempo de execução
+            //printf("funciona por favor");
+            run(temp->task,QUANTUM);
+            temp->task->burst -= QUANTUM;
+            if(temp->task->burst == 0){ //Se a task estiver concluída é removida da lista e exibe tempo de execução
+                char *name = temp->task->name;
+                delete(&head,temp->task); //Remove task da lista
+                printf("It took %.9f seconds to complete the task %s. \n",elapsedTime(startTime),name);
+            }
+            if(temp->next != NULL && temp->next->task->priority == currentPriority){
+               temp = temp->next;
+            }else{
+               temp = head;
+               printf("----------------------------------------\n");
+               printf("It took %.9f seconds to complete the round.\n",elapsedTime(startTasks));
+               printf("----------------------------------------\n\n");
+               QueryPerformanceCounter(&startTasks);
+            }
+         }
+      }
+   }
+   printf("----------------------------------------\n");
+   printf("It took %.9f seconds to complete all tasks.\n",elapsedTime(startTime));
+   printf("----------------------------------------\n\n");
+   
+}
+
+
