@@ -5,24 +5,23 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <time.h>
-#include <pthread.h>
 
 #define NUM_PRIORITIES 5
 
 struct node *head = NULL;
+
 typedef struct Queue {
     struct node *head;
 } Queue;
 
 Queue priorityQueues[NUM_PRIORITIES];
 LARGE_INTEGER frequency;
-
-pthread_t timeThread;
+HANDLE timeThread;
 
 int globalTime = 0;
 int realtimeSleep = 0;
 
-void *timeCounter(void *arg) {
+DWORD WINAPI timeCounter(LPVOID lpParam) {
     while (1) {
         Sleep(1000); // 1sec
         globalTime++;
@@ -30,7 +29,7 @@ void *timeCounter(void *arg) {
             realtimeSleep--;
         }
     }
-    return NULL;
+    return 0;
 }
 
 void addToPriorityQueue(char *name, int priority, int burst) {
@@ -77,7 +76,7 @@ void schedule() {
     double totalTime = 0;
 
     for (int i = 1; i <= NUM_PRIORITIES; ++i) {
-        priorityQueues[i - 1].head = NULL; 
+        priorityQueues[i - 1].head = NULL;
     }
 
     while (temp != NULL) {
@@ -85,16 +84,22 @@ void schedule() {
         temp = temp->next;
     }
 
-    pthread_create(&timeThread, NULL, timeCounter, NULL);
+    timeThread = CreateThread(NULL, 0, timeCounter, NULL, 0, NULL);
+    if (timeThread == NULL) {
+        printf("Error creating time thread.\n");
+        return;
+    }
 
-    for (int i = 1; i <= NUM_PRIORITIES; ++i) { 
-        if (priorityQueues[i - 1].head != NULL) { 
+    for (int i = 1; i <= NUM_PRIORITIES; ++i) {
+        if (priorityQueues[i - 1].head != NULL) {
             printf("Executing priority queue %d\n", i);
-            executePriorityQueue(&priorityQueues[i - 1], &totalTime); 
+            executePriorityQueue(&priorityQueues[i - 1], &totalTime);
         }
     }
 
-    pthread_join(timeThread, NULL);
+    WaitForSingleObject(timeThread, INFINITE);
+
+    CloseHandle(timeThread);
 
     printf("----------------------------------------\n");
     printf("It took %.9f seconds to complete all tasks.\n", totalTime);
