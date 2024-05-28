@@ -10,6 +10,8 @@ struct node *head = NULL;
 LARGE_INTEGER frequency;
 int unitTimeCounter;
 
+
+
 // add a task to the list 
 void add(char *name, int priority, int burst, int deadline) {
     Task *task = malloc(sizeof(Task));
